@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { initialRuns } from '../runsData';
+import { initialRuns } from '../../data/runsData';
 
 const Dashboard = () => {
     const navigate = useNavigate();
