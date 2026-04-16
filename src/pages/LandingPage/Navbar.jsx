@@ -7,12 +7,24 @@ const Navbar = () => {
     return (
         <nav style={styles.navbarFixed}>
             <div style={styles.navContainer}>
-                <div style={styles.logo}>Carolina Running Club</div>
+                {/* Logo takes you back to Landing Page */}
+                <div style={styles.logo} onClick={() => navigate('/')}>
+                    Carolina Running Club
+                </div>
+
                 <div style={styles.navActions}>
-                    <a href="#join" style={styles.joinLink}>Join Us</a>
+                    {/* Join Us takes you to Register */}
+                    <span
+                        style={styles.joinLink}
+                        onClick={() => navigate('/register')}
+                    >
+                        Join Us
+                    </span>
+
+                    {/* Login takes you to Login Page */}
                     <button
                         style={styles.loginButton}
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/login')}
                     >
                         Login
                     </button>
@@ -45,13 +57,14 @@ const styles = {
         width: '100%',
         boxSizing: 'border-box'
     },
-    logo: { color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' },
-    navActions: { display: 'flex', alignItems: 'center', gap: '20px' },
+    logo: { color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' },
+    navActions: { display: 'flex', alignItems: 'center', gap: '30px' },
     joinLink: {
         color: '#8B0000',
         textDecoration: 'none',
         fontWeight: 'bold',
-        fontSize: '14px'
+        fontSize: '14px',
+        cursor: 'pointer'
     },
     loginButton: {
         backgroundColor: '#8B0000',
