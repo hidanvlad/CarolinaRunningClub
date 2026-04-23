@@ -7,10 +7,10 @@ import { RunsProvider } from './context/RunsContext';
 import LandingPage from './pages/LandingPage/LandingPage';
 import Dashboard from './pages/Dashboard/Dashboard';
 import RunFormPage from './pages/Dashboard/RunFormPage';
+import RunDetail from './pages/RunDetail/RunDetail'; // Ensure this path is correct
 import Login from './pages/Auth/Login';
 import AnimatedPage from './components/Transitions/AnimatedPage';
 
-// We need a sub-component to use the useLocation hook correctly
 const AnimatedRoutes = () => {
     const location = useLocation();
 
@@ -21,7 +21,9 @@ const AnimatedRoutes = () => {
                 <Route path="/login" element={<AnimatedPage><Login /></AnimatedPage>} />
                 <Route path="/dashboard" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
                 <Route path="/add-run" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
-                {/* Wrap your other routes similarly */}
+                {/* GOLD: Added Dynamic ID Routes */}
+                <Route path="/edit-run/:id" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
+                <Route path="/run/:id" element={<AnimatedPage><RunDetail /></AnimatedPage>} />
             </Routes>
         </AnimatePresence>
     );
