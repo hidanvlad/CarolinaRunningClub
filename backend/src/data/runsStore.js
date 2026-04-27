@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 // backend/src/data/runsStore.js
 
 let runners = [
@@ -16,15 +17,9 @@ let runs = [...initialData];
 
 module.exports = {
     reset: () => { runs = [...initialData]; },
-
     getAllRunners: () => runners,
-
     getRunsByRunner: (runnerId) => runs.filter(r => r.runnerId === parseInt(runnerId)),
-
-    getById: (id) => {
-        return runs.find(r => r.id === parseInt(id));
-    },
-
+    getById: (id) => runs.find(r => r.id === parseInt(id)),
     getPaginated: (page, limit) => {
         const startIndex = (page - 1) * limit;
         return {
@@ -38,14 +33,6 @@ module.exports = {
         const newRun = { ...run, id: Date.now() };
         runs.unshift(newRun);
         return newRun;
-    },
-    update: (id, updatedData) => {
-        const index = runs.findIndex(r => r.id === parseInt(id));
-        if (index !== -1) {
-            runs[index] = { ...runs[index], ...updatedData };
-            return runs[index];
-        }
-        return null;
     },
     remove: (id) => {
         const initialLength = runs.length;

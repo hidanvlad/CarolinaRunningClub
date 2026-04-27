@@ -4,28 +4,55 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { faker } = require('@faker-js/faker');
 const cors = require('cors');
+const { ApolloServer } = require('apollo-server-express');
 const runsStore = require('./data/runsStore');
+const { typeDefs, resolvers } = require('./schema');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: { origin: "http://localhost:5173" }
-});
+const io = new Server(server, { cors: { origin: "http://localhost:5173" } });
 
+// 1. Apply CORS
 app.use(cors());
-app.use(express.json());
+
+// 2. FIXED: Apply JSON parsing only to simulation routes using correct prefix syntax
+// This avoids the "Missing parameter name" error in Express 5
+app.use('/api/simulation', express.json());
 
 let simulationInterval = null;
 
+async function startApollo() {
+    const apolloServer = new ApolloServer({
+        typeDefs,
+        resolvers,
+        introspection: true,
+    });
+
+    await apolloServer.start();
+
+    // 3. Apply Apollo middleware (it handles its own parsing for /graphql)
+    apolloServer.applyMiddleware({ app });
+
+    const PORT = 5000;
+    // 4. Start listening ONLY after Apollo is ready
+    server.listen(PORT, () => {
+        console.log(`🚀 GraphQL ready at http://localhost:5000${apolloServer.graphqlPath}`);
+        console.log(`🚀 Server running at http://localhost:${PORT}`);
+    });
+}
+
+startApollo();
+
+// --- WEBSOCKETS & SIMULATION (Silver Requirements) ---
 io.on('connection', (socket) => {
-    console.log(` Client connected: ${socket.id}`);
+    console.log(`⚡ Client connected: ${socket.id}`);
 });
 
-// --- SIMULATION ---
 app.post('/api/simulation/start', (req, res) => {
     if (simulationInterval) return res.status(400).json({ error: "Already running" });
     simulationInterval = setInterval(() => {
         const newRun = {
+            runnerId: faker.helpers.arrayElement([1, 2]),
             name: `${faker.person.firstName()}'s ${faker.helpers.arrayElement(['Morning', 'Late', 'Sprint'])}`,
             date: new Date().toISOString().split('T')[0],
             distance: `${faker.number.int({ min: 2, max: 15 })}km`,
@@ -33,7 +60,7 @@ app.post('/api/simulation/start', (req, res) => {
             location: faker.location.city()
         };
         const savedRun = runsStore.add(newRun);
-        io.emit('runAdded', savedRun);
+        io.emit('runAdded', savedRun); // [cite: 9]
     }, 4000);
     res.json({ message: "Simulation started" });
 });
@@ -42,53 +69,4 @@ app.post('/api/simulation/stop', (req, res) => {
     clearInterval(simulationInterval);
     simulationInterval = null;
     res.json({ message: "Simulation stopped" });
-});
-
-// --- CRUD  ---
-app.get('/api/runs', (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 7;
-    res.json(runsStore.getPaginated(page, limit));
-});
-
-
-app.get('/api/runs/:id', (req, res) => {
-    const run = runsStore.getById(req.params.id);
-    if (run) res.json(run);
-    else res.status(404).json({ error: "Run not found" });
-});
-
-app.post('/api/runs', (req, res) => {
-    const { name } = req.body;
-    if (!name || name.trim().length < 3) return res.status(400).json({ error: "Name too short" });
-    const newRun = runsStore.add(req.body);
-    io.emit('runAdded', newRun);
-    res.status(201).json(newRun);
-});
-
-app.delete('/api/runs/:id', (req, res) => {
-    const deleted = runsStore.remove(req.params.id);
-    if (deleted) res.status(204).send();
-    else res.status(404).json({ error: "Run not found" });
-});
-
-const PORT = 5000;
-server.listen(PORT, () => {
-    console.log(`🚀 Real-time Server running on http://localhost:${PORT}`);
-});
-
-// GET all runners for dropdowns and filtering
-app.get('/api/runners', (req, res) => {
-    res.json(runsStore.getAllRunners());
-});
-
-// Update POST /api/runs to ensure runnerId is handled
-app.post('/api/runs', (req, res) => {
-    const { name, runnerId } = req.body;
-    if (!name || name.trim().length < 3) return res.status(400).json({ error: "Name too short" });
-    if (!runnerId) return res.status(400).json({ error: "Runner is required" });
-
-    const newRun = runsStore.add(req.body);
-    io.emit('runAdded', newRun);
-    res.status(201).json(newRun);
 });

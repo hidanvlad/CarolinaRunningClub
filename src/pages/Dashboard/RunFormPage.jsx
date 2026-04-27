@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRuns } from '../../context/RunsContext';
@@ -10,7 +11,7 @@ const RunFormPage = () => {
 
     const [formData, setFormData] = useState({
         name: '',
-        runnerId: '', // Parent ID
+        runnerId: '',
         date: new Date().toISOString().split('T')[0],
         distance: '',
         location: '',
@@ -19,11 +20,7 @@ const RunFormPage = () => {
 
     useEffect(() => {
         if (id) {
-            const loadRun = async () => {
-                const data = await getRunById(id);
-                if (data) setFormData(data);
-            };
-            loadRun();
+            getRunById(id).then(data => { if (data) setFormData(data); });
         }
     }, [id, getRunById]);
 
@@ -36,12 +33,10 @@ const RunFormPage = () => {
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.page}>
             <div style={styles.card}>
-                <h2 style={{ color: '#8B0000', marginBottom: '20px' }}>
-                    {id ? "Edit Run" : "Add New Run"}
-                </h2>
+                <h2 style={{ color: '#8B0000', marginBottom: '20px' }}>{id ? "Edit Run" : "Add New Run"}</h2>
                 <form onSubmit={handleSubmit} style={styles.gridForm}>
                     <div style={{ ...styles.inputGroup, gridColumn: 'span 2' }}>
-                        <label style={styles.label}>Select Runner (1-to-Many Relationship)</label>
+                        <label style={styles.label}>Select Runner</label>
                         <select
                             value={formData.runnerId}
                             onChange={e => setFormData({ ...formData, runnerId: parseInt(e.target.value) })}
@@ -75,7 +70,6 @@ const RunFormPage = () => {
                             <option value="Intervals">Intervals</option>
                         </select>
                     </div>
-
                     <button type="submit" style={styles.btnSave}>Save Run</button>
                     <button type="button" onClick={() => navigate('/dashboard')} style={styles.btnCancel}>Cancel</button>
                 </form>

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRuns } from '../../context/RunsContext';
@@ -5,7 +6,7 @@ import {
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
     CartesianGrid, PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -17,10 +18,9 @@ const Dashboard = () => {
 
     const COLORS = ['#8B0000', '#B22222', '#CD5C5C', '#E57373'];
 
-    // Statistics for 1-to-many: Count runs for each runner
     const runnerStats = runners.map(r => ({
-        name: r.name.split(' ')[0], // Use first name for space
-        value: runs.filter(run => run.runnerId === r.id).length
+        name: r.name.split(' ')[0],
+        value: runs.filter(run => run.runnerId === parseInt(r.id)).length
     })).filter(d => d.value > 0);
 
     const typeStats = ['Commute', 'Race', 'Trail', 'Intervals'].map(type => ({
@@ -35,21 +35,19 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasMore && !isOffline) {
-                    const nextPage = page + 1;
-                    setPage(nextPage);
-                    fetchRuns(nextPage, 7, true);
-                }
-            }, { threshold: 1.0 }
-        );
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && hasMore && !isOffline) {
+                const nextPage = page + 1;
+                setPage(nextPage);
+                fetchRuns(nextPage, 7, true);
+            }
+        }, { threshold: 1.0 });
         const anchor = document.querySelector('#scroll-anchor');
         if (anchor) observer.observe(anchor);
         return () => { if (anchor) observer.unobserve(anchor); };
     }, [hasMore, page, fetchRuns, isOffline]);
 
-    if (loading) return <div style={{ color: 'white', padding: '50px' }}>Loading Dashboard...</div>;
+    if (loading) return <div style={{ color: 'white', padding: '50px' }}>Connecting to GraphQL...</div>;
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.container}>
@@ -72,18 +70,18 @@ const Dashboard = () => {
                             <thead>
                                 <tr style={styles.tableHead}>
                                     <th>Name</th>
-                                    <th>Runner (1-to-Many)</th> {/* REVEAL RELATIONSHIP */}
+                                    <th>Runner</th>
                                     <th>Type</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {runs.map(run => {
-                                    const runner = runners.find(r => r.id === run.runnerId);
+                                    const runner = runners.find(r => parseInt(r.id) === run.runnerId);
                                     return (
                                         <tr key={run.id} style={styles.tableRow}>
                                             <td onClick={() => navigate(`/run/${run.id}`)} style={styles.runLink}>{run.name}</td>
-                                            <td style={{ color: '#888' }}>{runner ? runner.name : "Unassigned"}</td>
+                                            <td style={{ color: '#888', fontSize: '13px' }}>{runner ? runner.name : "Unassigned"}</td>
                                             <td style={styles.typeCell}>{run.type}</td>
                                             <td>
                                                 <button onClick={() => navigate(`/edit-run/${run.id}`)} style={styles.btnAction}>Edit</button>
@@ -99,15 +97,15 @@ const Dashboard = () => {
                 </div>
 
                 <div style={styles.rightPanel}>
-                    <h3 style={styles.chartTitle}>Runs per Runner (Stats)</h3>
-                    <div style={{ height: '200px', marginBottom: '20px' }}>
+                    <h3 style={styles.chartTitle}>Runs per Runner</h3>
+                    <div style={{ height: '200px', marginBottom: '30px' }}>
                         <ResponsiveContainer>
                             <BarChart data={runnerStats}>
                                 <CartesianGrid stroke="#333" vertical={false} />
                                 <XAxis dataKey="name" stroke="#CCC" fontSize={10} />
                                 <YAxis stroke="#CCC" fontSize={10} />
-                                <Tooltip />
-                                <Bar dataKey="value" fill="#FFD700" />
+                                <Tooltip contentStyle={{ backgroundColor: '#1E1E1E', border: '1px solid #333' }} />
+                                <Bar dataKey="value" fill="#8B0000" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -116,11 +114,11 @@ const Dashboard = () => {
                     <div style={{ height: '200px' }}>
                         <ResponsiveContainer>
                             <PieChart>
-                                <Pie data={typeStats} innerRadius={50} outerRadius={70} dataKey="value">
+                                <Pie data={typeStats} innerRadius={55} outerRadius={75} dataKey="value" paddingAngle={5}>
                                     {typeStats.map((entry, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
                                 </Pie>
                                 <Tooltip />
-                                <Legend />
+                                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
@@ -133,22 +131,24 @@ const Dashboard = () => {
 const styles = {
     container: { backgroundColor: '#121212', minHeight: '100vh', color: '#F0F0F0', padding: '40px' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' },
-    mainTitle: { fontSize: '28px', borderLeft: '5px solid #8B0000', paddingLeft: '15px' },
+    mainTitle: { fontSize: '26px', borderLeft: '5px solid #8B0000', paddingLeft: '15px' },
     buttonGroup: { display: 'flex', gap: '10px' },
     mainLayout: { display: 'flex', gap: '30px' },
-    leftPanel: { flex: 1.5 },
-    rightPanel: { flex: 1, backgroundColor: '#1E1E1E', padding: '20px', borderRadius: '15px' },
-    tableWrapper: { backgroundColor: '#1E1E1E', borderRadius: '12px', padding: '10px', maxHeight: '550px', overflowY: 'auto' },
+    leftPanel: { flex: 1.6 },
+    rightPanel: { flex: 1, backgroundColor: '#1E1E1E', padding: '25px', borderRadius: '15px', border: '1px solid #333' },
+    tableWrapper: { backgroundColor: '#1E1E1E', borderRadius: '12px', padding: '10px', minHeight: '400px', maxHeight: '550px', overflowY: 'auto' },
     table: { width: '100%', borderCollapse: 'collapse' },
-    tableHead: { borderBottom: '2px solid #8B0000', textAlign: 'left', color: '#888', fontSize: '12px' },
+    tableHead: { borderBottom: '2px solid #8B0000', textAlign: 'left', color: '#888', fontSize: '12px', padding: '10px' },
     tableRow: { borderBottom: '1px solid #222' },
-    runLink: { color: '#FF4D4D', cursor: 'pointer', padding: '12px', display: 'inline-block', fontWeight: 'bold' },
-    typeCell: { color: '#AAA' },
-    btnRed: { backgroundColor: '#8B0000', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '20px', cursor: 'pointer' },
-    btnSimulate: { backgroundColor: '#FFD700', padding: '8px 16px', borderRadius: '20px', border: 'none' },
-    btnLogout: { backgroundColor: 'transparent', color: '#FFF', border: '1px solid #FFF', padding: '8px 16px', borderRadius: '20px' },
-    btnAction: { backgroundColor: '#333', color: '#FFF', border: 'none', padding: '5px 10px', borderRadius: '4px', marginRight: '5px' },
-    anchor: { padding: '20px', textAlign: 'center', color: '#555' },
-    chartTitle: { textAlign: 'center', color: '#888', fontSize: '14px', marginBottom: '10px' }
+    runLink: { color: '#FF4D4D', cursor: 'pointer', padding: '12px', fontSize: '14px', fontWeight: 'bold' },
+    typeCell: { color: '#AAA', fontSize: '13px' },
+    btnRed: { backgroundColor: '#8B0000', color: 'white', border: 'none', padding: '8px 18px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' },
+    btnSimulate: { backgroundColor: '#FFD700', color: 'black', border: 'none', padding: '8px 18px', borderRadius: '20px', fontWeight: 'bold', fontSize: '13px' },
+    btnStop: { backgroundColor: '#FFF', color: '#8B0000', border: 'none', padding: '8px 18px', borderRadius: '20px', fontWeight: 'bold', fontSize: '13px' },
+    btnLogout: { backgroundColor: 'transparent', color: '#FFF', border: '1px solid #444', padding: '8px 18px', borderRadius: '20px', fontSize: '13px' },
+    btnAction: { backgroundColor: '#333', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', marginRight: '5px' },
+    anchor: { padding: '20px', textAlign: 'center', color: '#444', fontSize: '12px' },
+    chartTitle: { textAlign: 'center', color: '#888', fontSize: '14px', marginBottom: '15px' }
 };
+
 export default Dashboard;
