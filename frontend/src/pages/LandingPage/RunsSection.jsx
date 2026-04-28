@@ -50,7 +50,7 @@ const styles = {
         padding: '0 40px'
     },
     card: {
-        backgroundColor: '#EAEAEA', // Gri deschis conform design
+        backgroundColor: '#EAEAEA', 
         padding: '30px',
         borderRadius: '15px',
         flex: 1,

@@ -7,7 +7,8 @@ import { RunsProvider } from './context/RunsContext';
 import LandingPage from './pages/LandingPage/LandingPage';
 import Dashboard from './pages/Dashboard/Dashboard';
 import RunFormPage from './pages/Dashboard/RunFormPage';
-import RunDetail from './pages/RunDetail/RunDetail'; // Ensure this path is correct
+import RunDetail from './pages/RunDetail/RunDetail';
+import Register from './pages/Auth/Register';
 import Login from './pages/Auth/Login';
 import AnimatedPage from './components/Transitions/AnimatedPage';
 
@@ -19,6 +20,7 @@ const AnimatedRoutes = () => {
             <Routes location={location} key={location.pathname}>
                 <Route path="/" element={<AnimatedPage><LandingPage /></AnimatedPage>} />
                 <Route path="/login" element={<AnimatedPage><Login /></AnimatedPage>} />
+                <Route path="/register" element={<AnimatedPage><Register /></AnimatedPage>} />
                 <Route path="/dashboard" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
                 <Route path="/add-run" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
                 {/* GOLD: Added Dynamic ID Routes */}

@@ -6,17 +6,17 @@ const { faker } = require('@faker-js/faker');
 const cors = require('cors');
 const { ApolloServer } = require('apollo-server-express');
 const runsStore = require('./data/runsStore');
-const { typeDefs, resolvers } = require('./schema');
+const { typeDefs, resolvers } = require('./graphql/schema'); 
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "http://localhost:5173" } });
 
-// 1. Apply CORS
+// 1. Apply CORS globally
 app.use(cors());
 
-// 2. FIXED: Apply JSON parsing only to simulation routes using correct prefix syntax
-// This avoids the "Missing parameter name" error in Express 5
+// 2. FIXED: Apply JSON parsing ONLY to simulation routes
+// This prevents conflicts with GraphQL streams and fixes Express 5 path errors 
 app.use('/api/simulation', express.json());
 
 let simulationInterval = null;
@@ -30,11 +30,11 @@ async function startApollo() {
 
     await apolloServer.start();
 
-    // 3. Apply Apollo middleware (it handles its own parsing for /graphql)
+    // 3. Apollo handles its own body parsing for the /graphql endpoint
     apolloServer.applyMiddleware({ app });
 
     const PORT = 5000;
-    // 4. Start listening ONLY after Apollo is ready
+    // 4. Start listening ONLY after Apollo is fully ready
     server.listen(PORT, () => {
         console.log(`🚀 GraphQL ready at http://localhost:5000${apolloServer.graphqlPath}`);
         console.log(`🚀 Server running at http://localhost:${PORT}`);
@@ -43,7 +43,7 @@ async function startApollo() {
 
 startApollo();
 
-// --- WEBSOCKETS & SIMULATION (Silver Requirements) ---
+// -- WEBSOCKETS & SIMULATION
 io.on('connection', (socket) => {
     console.log(`⚡ Client connected: ${socket.id}`);
 });
@@ -60,7 +60,7 @@ app.post('/api/simulation/start', (req, res) => {
             location: faker.location.city()
         };
         const savedRun = runsStore.add(newRun);
-        io.emit('runAdded', savedRun); // [cite: 9]
+        io.emit('runAdded', savedRun);
     }, 4000);
     res.json({ message: "Simulation started" });
 });

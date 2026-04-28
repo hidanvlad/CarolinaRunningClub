@@ -41,7 +41,7 @@ const Dashboard = () => {
                 setPage(nextPage);
                 fetchRuns(nextPage, 7, true);
             }
-        }, { threshold: 1.0 });
+        }, { threshold: 1.0 }); 
         const anchor = document.querySelector('#scroll-anchor');
         if (anchor) observer.observe(anchor);
         return () => { if (anchor) observer.unobserve(anchor); };
@@ -53,7 +53,7 @@ const Dashboard = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.container}>
             <ToastContainer />
             <div style={styles.header}>
-                <h1 style={styles.mainTitle}>Management Alergări</h1>
+                <h1 style={styles.mainTitle}>Management Runs</h1>
                 <div style={styles.buttonGroup}>
                     <button onClick={toggleSimulation} style={isSimulating ? styles.btnStop : styles.btnSimulate}>
                         {isSimulating ? "Stop Stream" : "Live Simulation"}
