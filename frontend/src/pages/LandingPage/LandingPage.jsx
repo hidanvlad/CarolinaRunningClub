@@ -11,34 +11,41 @@ const LandingPage = () => {
     return (
         <div style={styles.landingPageContainer}>
             <Navbar />
-            <div style={styles.contentWrapper}>
-                <Hero />
+            <Hero />
 
-                {/* THIS IS THE ONLY BUTTON NOW */}
-                <div style={styles.buttonSection}>
-                    <button
-                        style={styles.ctaButton}
-                        onClick={() => navigate('/login')}
-                    >
-                        Start Your Journey
-                    </button>
-                </div>
-
-                <InfoCards />
-                <Footer />
+            {/* CTA Section */}
+            <div style={styles.buttonSection}>
+                <button
+                    style={styles.ctaButton}
+                    onClick={() => navigate('/login')}
+                >
+                    Start Your Journey
+                </button>
             </div>
+
+            {/* Content Sections */}
+            <InfoCards />
+
+            {/* Optional: Add a Gallery or Events section here later */}
+
+            <Footer />
         </div>
     );
 };
 
 const styles = {
-    landingPageContainer: { backgroundColor: '#FFFFFF', minHeight: '100vh', width: '100%' },
-    contentWrapper: { width: '100%', display: 'flex', flexDirection: 'column' },
+    landingPageContainer: {
+        backgroundColor: '#121212', // Match the club vibe
+        minHeight: '100vh',
+        width: '100vw',
+        display: 'flex',
+        flexDirection: 'column'
+    },
     buttonSection: {
         display: 'flex',
         justifyContent: 'center',
-        padding: '50px 0',
-        backgroundColor: '#FFFFFF'
+        padding: '80px 0',
+        backgroundColor: '#FFFFFF' // Contrast break
     },
     ctaButton: {
         backgroundColor: '#8B0000',

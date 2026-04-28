@@ -36,26 +36,24 @@ const Navbar = () => {
 
 const styles = {
     navbarFixed: {
-        backgroundColor: '#1E1E1E',
-        width: '100%',
+        backgroundColor: 'rgba(18, 18, 18, 0.95)', // Slightly transparent
+        width: '100vw',
         position: 'fixed',
         top: 0,
         left: 0,
-        right: 0,
-        zIndex: 1000,
-        boxSizing: 'border-box',
+        zIndex: 2000,
+        height: '70px',
+        display: 'flex',
+        alignItems: 'center',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        opacity: 0.99
+        backdropFilter: 'blur(5px)'
     },
     navContainer: {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '10px 40px',
         width: '100%',
-        boxSizing: 'border-box'
+        padding: '0 5%', // Responsive padding
     },
     logo: { color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' },
     navActions: { display: 'flex', alignItems: 'center', gap: '30px' },

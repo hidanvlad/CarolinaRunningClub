@@ -6,7 +6,6 @@ import { toast } from 'react-toastify';
 const RunsContext = createContext();
 const socket = io('http://localhost:5000');
 
-// GraphQL Helper
 const gqlRequest = async (query, variables = {}) => {
     const res = await fetch('http://localhost:5000/graphql', {
         method: 'POST',
@@ -24,11 +23,32 @@ export const RunsProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isOffline, setIsOffline] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [pendingActions, setPendingActions] = useState([]); // SILVER: Sync Queue [cite: 5, 6]
+
+    // SILVER: Heartbeat and Sync Effect 
+    useEffect(() => {
+        if (!isOffline && pendingActions.length > 0) {
+            const syncData = async () => {
+                toast.info("Re-connected. Syncing data...");
+                for (const action of pendingActions) {
+                    if (action.type === 'ADD') {
+                        await addRun(action.data, true); // true avoids re-adding to queue
+                    }
+                }
+                setPendingActions([]);
+                toast.success("Synchronization complete!");
+            };
+            syncData();
+        }
+    }, [isOffline, pendingActions]);
 
     const fetchRunners = useCallback(async () => {
         try {
             const data = await gqlRequest(`query { runners { id name level } }`);
-            if (data) setRunners(data.runners);
+            if (data) {
+                setRunners(data.runners);
+                setIsOffline(false);
+            }
         } catch { setIsOffline(true); }
     }, []);
 
@@ -48,15 +68,23 @@ export const RunsProvider = ({ children }) => {
             setPagination({ totalItems: result.totalItems, totalPages: result.totalPages });
             setHasMore(page < result.totalPages);
             setIsOffline(false);
-        } catch { setIsOffline(true); } finally { setLoading(false); }
+        } catch {
+            setIsOffline(true);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    const addRun = async (newRun) => {
+    // Updated addRun with sync support 
+    const addRun = async (newRun, isSyncing = false) => {
         const tempRun = { ...newRun, id: Date.now(), isPending: true };
-        if (isOffline) {
+
+        if (isOffline && !isSyncing) {
             setRuns(prev => [tempRun, ...prev]);
+            setPendingActions(prev => [...prev, { type: 'ADD', data: newRun }]);
             return;
         }
+
         const mutation = `
             mutation Add($name: String!, $rId: Int!, $date: String!, $dist: String, $type: String!, $loc: String) {
                 addRun(name: $name, runnerId: $rId, date: $date, distance: $dist, type: $type, location: $loc) { id }
@@ -64,14 +92,34 @@ export const RunsProvider = ({ children }) => {
         `;
         try {
             await gqlRequest(mutation, {
-                name: newRun.name, rId: newRun.runnerId, date: newRun.date,
-                dist: newRun.distance, type: newRun.type, loc: newRun.location
+                name: newRun.name,
+                rId: parseInt(newRun.runnerId),
+                date: newRun.date,
+                dist: newRun.distance,
+                type: newRun.type,
+                loc: newRun.location
             });
-            fetchRuns(1, 7, false);
+            if (!isSyncing) fetchRuns(1, 7, false);
         } catch {
-            setIsOffline(true);
-            setRuns(prev => [tempRun, ...prev]); // Silver: Local memory storage
+            if (!isSyncing) {
+                setIsOffline(true);
+                setRuns(prev => [tempRun, ...prev]);
+                setPendingActions(prev => [...prev, { type: 'ADD', data: newRun }]);
+            }
         }
+    };
+
+    // GOLD: Added Update logic for full CRUD completeness 
+    const updateRun = async (id, updatedData) => {
+        const mutation = `
+            mutation Update($id: ID!, $name: String, $rId: Int, $dist: String, $type: String) {
+                updateRun(id: $id, name: $name, runnerId: $rId, distance: $dist, type: $type) { id }
+            }
+        `;
+        try {
+            await gqlRequest(mutation, { id, ...updatedData, rId: parseInt(updatedData.runnerId) });
+            fetchRuns(1, 7, false);
+        } catch { setIsOffline(true); }
     };
 
     const deleteRun = async (id) => {
@@ -99,7 +147,10 @@ export const RunsProvider = ({ children }) => {
     }, []);
 
     return (
-        <RunsContext.Provider value={{ runs, runners, pagination, loading, isOffline, hasMore, fetchRuns, addRun, deleteRun, getRunById }}>
+        <RunsContext.Provider value={{
+            runs, runners, pagination, loading, isOffline, hasMore,
+            fetchRuns, addRun, updateRun, deleteRun, getRunById
+        }}>
             {children}
         </RunsContext.Provider>
     );

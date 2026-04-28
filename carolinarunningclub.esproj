@@ -9,7 +9,10 @@
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="src\components\NewFolder\**" />
-    <TypeScriptConfiguration Remove="src\components\NewFolder\**" />
+    <None Remove="frontend\src\components\NewFolder\**" />
+    <TypeScriptConfiguration Remove="frontend\src\components\NewFolder\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="backend\src\middleware\" />
   </ItemGroup>
 </Project>

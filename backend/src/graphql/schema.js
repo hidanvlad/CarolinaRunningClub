@@ -1,5 +1,6 @@
+/* eslint-disable no-undef */
 const { gql } = require('apollo-server-express');
-const runsStore = require('./data/runsStore');
+const runsStore = require('../data/runsStore');
 
 const typeDefs = gql`
   type Runner {
@@ -20,6 +21,21 @@ const typeDefs = gql`
     runner: Runner
   }
 
+  # GOLD: Shop Types
+  type ShopItem {
+    id: ID!
+    name: String!
+    price: Int!
+    img: String
+    categoryId: Int!
+  }
+
+  type ShopCategory {
+    id: ID!
+    name: String!
+    items: [ShopItem]
+  }
+
   type PaginatedRuns {
     totalItems: Int!
     totalPages: Int!
@@ -31,6 +47,7 @@ const typeDefs = gql`
     runners: [Runner]
     run(id: ID!): Run
     runs(page: Int, limit: Int): PaginatedRuns
+    shopCategories: [ShopCategory]
   }
 
   type Mutation {
@@ -49,20 +66,24 @@ const typeDefs = gql`
 const resolvers = {
     Query: {
         runners: () => runsStore.getAllRunners(),
-        // Ensure the ID is parsed as an Integer before searching the store
         run: (_, { id }) => runsStore.getById(parseInt(id)),
         runs: (_, { page, limit }) => runsStore.getPaginated(page || 1, limit || 7),
+        shopCategories: () => runsStore.getAllCategories(),
     },
     Mutation: {
         addRun: (_, args) => runsStore.add(args),
         deleteRun: (_, { id }) => runsStore.remove(parseInt(id)),
     },
-    // Fix relationship parsing
+    // Relationships
     Run: {
         runner: (parent) => runsStore.getAllRunners().find(r => parseInt(r.id) === parseInt(parent.runnerId))
     },
     Runner: {
         runs: (parent) => runsStore.getRunsByRunner(parseInt(parent.id))
+    },
+    
+    ShopCategory: {
+        items: (parent) => runsStore.getItemsByCategory(parent.id)
     }
 };
 
