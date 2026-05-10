@@ -1,4 +1,3 @@
-// src/pages/RunDetail/RunDetail.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRuns } from '../../context/RunsContext';
@@ -20,7 +19,7 @@ const RunDetail = () => {
     }, [id, getRunById]);
 
     if (loading) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Syncing data from server...</div>;
-    if (!run) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Run not found in RAM storage!</div>;
+    if (!run) return <div style={{ color: 'white', padding: '100px', textAlign: 'center' }}>Run not found!</div>;
 
     return (
         <div style={styles.container}>
@@ -29,22 +28,22 @@ const RunDetail = () => {
             </button>
 
             <div style={styles.card}>
-                <h1 style={styles.title}>{run.name}</h1>
-                <p style={styles.subtitle}>Run ID: {id}</p>
+                <h1 style={styles.title}>{run.name || "Morning Run"}</h1>
+                <p style={styles.subtitle}>System Activity ID: {id}</p>
                 <hr style={styles.hr} />
 
                 <div style={styles.infoGrid}>
                     <div style={styles.infoItem}>
                         <span style={styles.label}>Type:</span>
-                        <span style={styles.value}>{run.type}</span>
+                        <span style={styles.value}>{run.type || "Jogging"}</span>
                     </div>
                     <div style={styles.infoItem}>
                         <span style={styles.label}>Distance:</span>
-                        <span style={styles.value}>{run.distance}</span>
+                        <span style={styles.value}>{run.distance} km</span>
                     </div>
                     <div style={styles.infoItem}>
                         <span style={styles.label}>Date:</span>
-                        <span style={styles.value}>{run.date}</span>
+                        <span style={styles.value}>{new Date(run.date).toLocaleDateString()}</span>
                     </div>
                     <div style={styles.infoItem}>
                         <span style={styles.label}>Location:</span>
@@ -53,9 +52,9 @@ const RunDetail = () => {
                 </div>
 
                 <div style={styles.descSection}>
-                    <h3 style={{ color: '#FF4D4D', marginBottom: '10px' }}>Description</h3>
+                    <h3 style={{ color: '#FF4D4D', marginBottom: '10px' }}>SQL Data Log</h3>
                     <p style={styles.desc}>
-                        {run.description || "Generated data from the real-time simulation broadcast."}
+                        Activity persisted via Entity Framework Core from SQL Server instance.
                     </p>
                 </div>
             </div>

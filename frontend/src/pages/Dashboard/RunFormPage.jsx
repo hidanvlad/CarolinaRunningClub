@@ -7,45 +7,63 @@ import { motion } from 'framer-motion';
 const RunFormPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { addRun, getRunById, runners } = useRuns();
+    const { addRun, updateRun, getRunById, runners, activityTypes } = useRuns();
 
     const [formData, setFormData] = useState({
         name: '',
-        runnerId: '',
+        userId: '',
         date: new Date().toISOString().split('T')[0],
         distance: '',
-        location: '',
-        type: 'Trail'
+        activityTypeId: ''
     });
 
     useEffect(() => {
         if (id) {
-            getRunById(id).then(data => { if (data) setFormData(data); });
+            getRunById(id).then(data => {
+                if (data) setFormData({
+                    ...data,
+                    userId: data.userId || '',
+                    activityTypeId: data.activityTypeId || ''
+                });
+            });
         }
     }, [id, getRunById]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await addRun(formData);
+
+        // GOLD: Passing 1 (Admin) as the actorId so the backend logs the action
+        const actorId = 1;
+
+        if (id) {
+            // If ID exists, we are UPDATING
+            await updateRun(id, formData, actorId);
+        } else {
+            // If no ID, we are ADDING
+            await addRun(formData, actorId);
+        }
+
         navigate('/dashboard');
     };
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.page}>
             <div style={styles.card}>
-                <h2 style={{ color: '#8B0000', marginBottom: '20px' }}>{id ? "Edit Run" : "Add New Run"}</h2>
+                <h2 style={{ color: '#8B0000', marginBottom: '20px' }}>
+                    {id ? `Editing Run #${id}` : "Add New Run"}
+                </h2>
                 <form onSubmit={handleSubmit} style={styles.gridForm}>
                     <div style={{ ...styles.inputGroup, gridColumn: 'span 2' }}>
                         <label style={styles.label}>Select Runner</label>
                         <select
-                            value={formData.runnerId}
-                            onChange={e => setFormData({ ...formData, runnerId: parseInt(e.target.value) })}
+                            value={formData.userId}
+                            onChange={e => setFormData({ ...formData, userId: e.target.value })}
                             style={styles.input}
                             required
                         >
                             <option value="">-- Choose Runner --</option>
                             {runners.map(r => (
-                                <option key={r.id} value={r.id}>{r.name} ({r.level})</option>
+                                <option key={r.id} value={r.id}>{r.name}</option>
                             ))}
                         </select>
                     </div>
@@ -58,19 +76,28 @@ const RunFormPage = () => {
                         <input type="date" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} style={styles.input} required />
                     </div>
                     <div style={styles.inputGroup}>
-                        <label style={styles.label}>Distance</label>
-                        <input placeholder="5km" value={formData.distance} onChange={e => setFormData({ ...formData, distance: e.target.value })} style={styles.input} />
+                        <label style={styles.label}>Distance (km)</label>
+                        <input placeholder="5.0" value={formData.distance} onChange={e => setFormData({ ...formData, distance: e.target.value })} style={styles.input} required />
                     </div>
                     <div style={styles.inputGroup}>
-                        <label style={styles.label}>Type</label>
-                        <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })} style={styles.input}>
-                            <option value="Commute">Commute</option>
-                            <option value="Race">Race</option>
-                            <option value="Trail">Trail</option>
-                            <option value="Intervals">Intervals</option>
+                        <label style={styles.label}>Activity Type</label>
+                        <select
+                            value={formData.activityTypeId}
+                            onChange={e => setFormData({ ...formData, activityTypeId: e.target.value })}
+                            style={styles.input}
+                            required
+                        >
+                            <option value="">-- Select Type --</option>
+                            {activityTypes.map(t => (
+                                <option key={t.id} value={t.id}>
+                                    {t.typeName || t.TypeName}
+                                </option>
+                            ))}
                         </select>
                     </div>
-                    <button type="submit" style={styles.btnSave}>Save Run</button>
+                    <button type="submit" style={styles.btnSave}>
+                        {id ? "Save Changes & Log" : "Add Run & Log"}
+                    </button>
                     <button type="button" onClick={() => navigate('/dashboard')} style={styles.btnCancel}>Cancel</button>
                 </form>
             </div>
@@ -88,4 +115,5 @@ const styles = {
     btnSave: { backgroundColor: '#8B0000', color: 'white', border: 'none', padding: '15px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' },
     btnCancel: { backgroundColor: 'transparent', color: '#888', border: '1px solid #444', padding: '15px', borderRadius: '5px', cursor: 'pointer' }
 };
+
 export default RunFormPage;

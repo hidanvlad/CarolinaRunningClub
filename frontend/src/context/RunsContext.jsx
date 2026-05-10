@@ -1,155 +1,191 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import { io } from 'socket.io-client';
 import { toast } from 'react-toastify';
 
 const RunsContext = createContext();
-const socket = io('http://localhost:5000');
-
-const gqlRequest = async (query, variables = {}) => {
-    const res = await fetch('http://localhost:5000/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, variables })
-    });
-    const result = await res.json();
-    return result.data;
-};
+const BASE_URL = 'http://192.168.1.18:5048/api';
 
 export const RunsProvider = ({ children }) => {
+    // PERSISTENCY: Load user from localStorage on startup
+    const [currentUser, setCurrentUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
     const [runs, setRuns] = useState([]);
     const [runners, setRunners] = useState([]);
-    const [pagination, setPagination] = useState({ totalPages: 1, totalItems: 0 });
+    const [activityTypes, setActivityTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isOffline, setIsOffline] = useState(false);
-    const [hasMore, setHasMore] = useState(true);
-    const [pendingActions, setPendingActions] = useState([]); // SILVER: Sync Queue [cite: 5, 6]
+    const [logs, setLogs] = useState([]);
+    const [observationList, setObservationList] = useState([]);
 
-    // SILVER: Heartbeat and Sync Effect 
-    useEffect(() => {
-        if (!isOffline && pendingActions.length > 0) {
-            const syncData = async () => {
-                toast.info("Re-connected. Syncing data...");
-                for (const action of pendingActions) {
-                    if (action.type === 'ADD') {
-                        await addRun(action.data, true); // true avoids re-adding to queue
-                    }
-                }
-                setPendingActions([]);
-                toast.success("Synchronization complete!");
-            };
-            syncData();
+    // --- AUTH FUNCTIONS ---
+
+    const login = (email) => {
+        // Logic: Match the email to the users in your DB
+        const userMatch = runners.find(r => r.email.toLowerCase() === email.toLowerCase());
+
+        if (userMatch) {
+            // Determine role based on email as you suggested
+            const role = userMatch.email === 'hidan.vlad@test.com' ? 'Admin' : 'User';
+            const sessionUser = { ...userMatch, role };
+
+            setCurrentUser(sessionUser);
+            localStorage.setItem('user', JSON.stringify(sessionUser));
+            toast.success(`Welcome back, ${sessionUser.name}!`);
+            return true;
+        } else {
+            toast.error("User not found in database.");
+            return false;
         }
-    }, [isOffline, pendingActions]);
+    };
+
+    const logout = () => {
+        setCurrentUser(null);
+        localStorage.removeItem('user');
+        toast.info("Logged out.");
+    };
+
+    // --- FETCH FUNCTIONS ---
 
     const fetchRunners = useCallback(async () => {
         try {
-            const data = await gqlRequest(`query { runners { id name level } }`);
-            if (data) {
-                setRunners(data.runners);
-                setIsOffline(false);
-            }
+            const res = await fetch(`${BASE_URL}/Users`);
+            if (res.ok) setRunners(await res.json());
         } catch { setIsOffline(true); }
     }, []);
 
-    const fetchRuns = useCallback(async (page = 1, limit = 7, append = false) => {
-        const query = `
-            query GetRuns($page: Int, $limit: Int) {
-                runs(page: $page, limit: $limit) {
-                    totalItems totalPages currentPage
-                    data { id runnerId name date distance type location }
-                }
-            }
-        `;
+    const fetchTypes = useCallback(async () => {
         try {
-            const data = await gqlRequest(query, { page, limit });
-            const result = data.runs;
-            setRuns(prev => append ? [...prev, ...result.data] : result.data);
-            setPagination({ totalItems: result.totalItems, totalPages: result.totalPages });
-            setHasMore(page < result.totalPages);
+            const res = await fetch(`${BASE_URL}/ActivityTypes`);
+            if (res.ok) setActivityTypes(await res.json());
+        } catch (err) { console.error("Failed to fetch types:", err); }
+    }, []);
+
+    const fetchRuns = useCallback(async () => {
+        try {
+            const res = await fetch(`${BASE_URL}/RunActivities`);
+            if (!res.ok) throw new Error();
+            const rawData = await res.json();
+
+            const mappedData = rawData.map(run => {
+                const runner = runners.find(r => Number(r.id) === Number(run.userId));
+                const typeObj = activityTypes.find(t => Number(t.id) === Number(run.activityTypeId));
+
+                return {
+                    ...run,
+                    runnerName: runner ? runner.name : "Unknown",
+                    type: typeObj ? (typeObj.typeName || typeObj.TypeName) : "No Type"
+                };
+            });
+
+            setRuns(mappedData);
             setIsOffline(false);
-        } catch {
+        } catch (err) {
             setIsOffline(true);
         } finally {
             setLoading(false);
         }
+    }, [runners, activityTypes]);
+
+    const fetchLogs = useCallback(async () => {
+        try {
+            const res = await fetch(`${BASE_URL}/ActionLogs`);
+            if (res.ok) setLogs(await res.json());
+        } catch (err) { console.error("Failed to fetch logs:", err); }
     }, []);
 
-    // Updated addRun with sync support 
-    const addRun = async (newRun, isSyncing = false) => {
-        const tempRun = { ...newRun, id: Date.now(), isPending: true };
-
-        if (isOffline && !isSyncing) {
-            setRuns(prev => [tempRun, ...prev]);
-            setPendingActions(prev => [...prev, { type: 'ADD', data: newRun }]);
-            return;
-        }
-
-        const mutation = `
-            mutation Add($name: String!, $rId: Int!, $date: String!, $dist: String, $type: String!, $loc: String) {
-                addRun(name: $name, runnerId: $rId, date: $date, distance: $dist, type: $type, location: $loc) { id }
-            }
-        `;
+    const fetchObservationList = useCallback(async () => {
         try {
-            await gqlRequest(mutation, {
-                name: newRun.name,
-                rId: parseInt(newRun.runnerId),
-                date: newRun.date,
-                dist: newRun.distance,
-                type: newRun.type,
-                loc: newRun.location
+            const res = await fetch(`${BASE_URL}/ObservationList`);
+            if (res.ok) setObservationList(await res.json());
+        } catch (err) { console.error("Failed to fetch observation list:", err); }
+    }, []);
+
+    // --- ACTION FUNCTIONS ---
+
+    const addRun = async (newRun) => {
+        try {
+            const res = await fetch(`${BASE_URL}/RunActivities`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Performed-By': currentUser?.id.toString() || "0"
+                },
+                body: JSON.stringify({
+                    name: newRun.name,
+                    distance: parseFloat(newRun.distance),
+                    date: newRun.date,
+                    userId: parseInt(newRun.userId),
+                    activityTypeId: parseInt(newRun.activityTypeId)
+                })
             });
-            if (!isSyncing) fetchRuns(1, 7, false);
-        } catch {
-            if (!isSyncing) {
-                setIsOffline(true);
-                setRuns(prev => [tempRun, ...prev]);
-                setPendingActions(prev => [...prev, { type: 'ADD', data: newRun }]);
+            if (res.ok) {
+                fetchRuns();
+                fetchLogs();
+                fetchObservationList();
+                toast.success("Run added!");
             }
-        }
+        } catch { toast.error("Server connection failed"); }
     };
 
-    // GOLD: Added Update logic for full CRUD completeness 
-    const updateRun = async (id, updatedData) => {
-        const mutation = `
-            mutation Update($id: ID!, $name: String, $rId: Int, $dist: String, $type: String) {
-                updateRun(id: $id, name: $name, runnerId: $rId, distance: $dist, type: $type) { id }
-            }
-        `;
+    const updateRun = async (id, updatedRun) => {
         try {
-            await gqlRequest(mutation, { id, ...updatedData, rId: parseInt(updatedData.runnerId) });
-            fetchRuns(1, 7, false);
-        } catch { setIsOffline(true); }
+            const res = await fetch(`${BASE_URL}/RunActivities/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Performed-By': currentUser?.id.toString() || "0"
+                },
+                body: JSON.stringify({
+                    id: parseInt(id),
+                    name: updatedRun.name,
+                    distance: parseFloat(updatedRun.distance),
+                    date: updatedRun.date,
+                    userId: parseInt(updatedRun.userId),
+                    activityTypeId: parseInt(updatedRun.activityTypeId)
+                })
+            });
+            if (res.ok) {
+                fetchRuns();
+                fetchLogs();
+                fetchObservationList();
+                toast.success("Update logged!");
+            }
+        } catch { toast.error("Update failed"); }
     };
 
     const deleteRun = async (id) => {
-        if (isOffline) {
-            setRuns(prev => prev.filter(r => r.id !== id));
-            return;
-        }
-        await gqlRequest(`mutation Del($id: ID!) { deleteRun(id: $id) }`, { id });
-        fetchRuns(1, 7, false);
+        try {
+            await fetch(`${BASE_URL}/RunActivities/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-Performed-By': currentUser?.id.toString() || "0" }
+            });
+            fetchRuns();
+            fetchLogs();
+            fetchObservationList();
+            toast.info("Deletion logged!");
+        } catch { setIsOffline(true); }
     };
 
     const getRunById = async (id) => {
-        const data = await gqlRequest(`query GetRun($id: ID!) { run(id: $id) { id name date distance type location runnerId } }`, { id });
-        return data ? data.run : null;
+        try {
+            const res = await fetch(`${BASE_URL}/RunActivities/${id}`);
+            return await res.json();
+        } catch { return null; }
     };
 
-    useEffect(() => { fetchRuns(); fetchRunners(); }, [fetchRuns, fetchRunners]);
+    useEffect(() => {
+        fetchRunners();
+        fetchTypes();
+    }, [fetchRunners, fetchTypes]);
 
     useEffect(() => {
-        socket.on('runAdded', (newRun) => {
-            setRuns(prev => [newRun, ...prev]);
-            toast.info(`🏃 New Run: ${newRun.name}!`, { position: "bottom-right", theme: "dark" });
-        });
-        return () => socket.off('runAdded');
-    }, []);
+        if (runners.length > 0) fetchRuns();
+    }, [runners, activityTypes, fetchRuns]);
 
     return (
         <RunsContext.Provider value={{
-            runs, runners, pagination, loading, isOffline, hasMore,
-            fetchRuns, addRun, updateRun, deleteRun, getRunById
+            runs, runners, activityTypes, loading, isOffline, currentUser,
+            login, logout, fetchRuns, addRun, updateRun, deleteRun, getRunById,
+            logs, fetchLogs, observationList, fetchObservationList
         }}>
             {children}
         </RunsContext.Provider>
