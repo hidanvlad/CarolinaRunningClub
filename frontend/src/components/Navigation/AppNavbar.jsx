@@ -1,12 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRuns } from '../../context/RunsContext';
 
 const AppNavbar = () => {
     const { currentUser, logout } = useRuns();
     const navigate = useNavigate();
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-    // If no one is logged in, don't show the navbar at all (keeps Login/Landing clean)
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     if (!currentUser) return null;
 
     const handleLogout = () => {
@@ -15,34 +21,51 @@ const AppNavbar = () => {
     };
 
     return (
-        <nav style={styles.nav}>
+        <nav style={{
+            ...styles.nav,
+            padding: isMobile ? '0 15px' : '0 40px'
+        }}>
             <div style={styles.brand} onClick={() => navigate('/dashboard')}>
-                <span style={styles.logoText}>Carolina Running Club</span>
+                <span style={{
+                    ...styles.logoText,
+                    fontSize: isMobile ? '16px' : '18px'
+                }}>
+                    {isMobile ? "CRC" : "Carolina Running Club"}
+                </span>
             </div>
 
-
-
-
-            <div style={styles.links}>
-                <Link to="/dashboard" style={styles.link}>Dashboard</Link>
-
-                {/* SILVER: Dedicated link to the full-page chat */}
-                <Link to="/chat" style={styles.link}>Club Chat</Link>
-
-                {/* GOLD: Only show Admin Panel if the role is Admin */}
+            <div style={{
+                ...styles.links,
+                gap: isMobile ? '12px' : '30px'
+            }}>
+                <Link to="/dashboard" style={styles.link}>Runs</Link>
+                <Link to="/chat" style={styles.link}>Chat</Link>
                 {currentUser.role === 'Admin' && (
-                    <Link to="/admin-panel" style={styles.adminLink}>
-                        ⚠️ Admin Oversight
+                    <Link to="/admin-panel" style={{
+                        ...styles.adminLink,
+                        fontSize: isMobile ? '11px' : '14px',
+                        padding: isMobile ? '3px 6px' : '5px 10px'
+                    }}>
+                        {isMobile ? "🛡️" : "⚠️ Oversight"}
                     </Link>
                 )}
             </div>
 
-            <div style={styles.userSection}>
+            <div style={{
+                ...styles.userSection,
+                gap: isMobile ? '8px' : '20px'
+            }}>
                 <div style={styles.userInfo}>
-                    <span style={styles.userName}>{currentUser.name}</span>
+                    <span style={{ ...styles.userName, display: isMobile ? 'none' : 'block' }}>{currentUser.name}</span>
                     <span style={styles.roleBadge}>{currentUser.role}</span>
                 </div>
-                <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
+                <button onClick={handleLogout} style={{
+                    ...styles.logoutBtn,
+                    fontSize: isMobile ? '10px' : '12px',
+                    padding: isMobile ? '4px 8px' : '6px 12px'
+                }}>
+                    Out
+                </button>
             </div>
         </nav>
     );
@@ -53,7 +76,6 @@ const styles = {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '0 40px',
         height: '70px',
         backgroundColor: '#1a1a1a',
         borderBottom: '2px solid #8B0000',
@@ -63,20 +85,17 @@ const styles = {
         zIndex: 1000
     },
     brand: { cursor: 'pointer', display: 'flex', flexDirection: 'column' },
-    logoText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: '18px', lineHeight: '1', flex: '0 0 auto' },
-    subText: { color: '#666', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' },
-    links: { display: 'flex', gap: '30px', alignItems: 'center' },
+    logoText: { color: '#FFFFFF', fontWeight: 'bold', lineHeight: '1', flex: '0 0 auto' },
+    links: { display: 'flex', alignItems: 'center' },
     link: { color: '#e0e0e0', textDecoration: 'none', fontWeight: '500', fontSize: '14px', transition: 'color 0.2s' },
     adminLink: {
         color: '#FFD700',
         textDecoration: 'none',
         fontWeight: 'bold',
-        fontSize: '14px',
-        padding: '5px 10px',
         border: '1px solid #FFD700',
         borderRadius: '4px'
     },
-    userSection: { display: 'flex', alignItems: 'center', gap: '20px' },
+    userSection: { display: 'flex', alignItems: 'center' },
     userInfo: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end' },
     userName: { color: '#fff', fontSize: '14px', fontWeight: 'bold' },
     roleBadge: { color: '#8B0000', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' },
@@ -84,10 +103,8 @@ const styles = {
         backgroundColor: 'transparent',
         border: '1px solid #444',
         color: '#ccc',
-        padding: '6px 12px',
         borderRadius: '20px',
-        cursor: 'pointer',
-        fontSize: '12px'
+        cursor: 'pointer'
     }
 };
 

@@ -62,7 +62,7 @@ a:hover { text-decoration:underline; }
   background: #E8E8E8;
   padding: 4px 5px;
   border-radius: 3px;
-  vertical-align: middle;
+  vertical-align: ;
 }
 
 div.path a:link, div.path a:visited { color: #333; }
