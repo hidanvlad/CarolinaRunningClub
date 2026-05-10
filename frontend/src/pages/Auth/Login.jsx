@@ -1,14 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useRuns } from '../../context/RunsContext';
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login } = useRuns();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Updated: Redirect to Dashboard after "Login"
-        navigate('/dashboard');
+
+        // Use the login function from context
+        const success = login(email);
+
+        if (success) {
+            navigate('/dashboard');
+        }
     };
 
     return (
@@ -35,10 +44,23 @@ const Login = () => {
 
                 <form onSubmit={handleSubmit} style={styles.form}>
                     <label style={styles.label}>Email</label>
-                    <input type="email" style={styles.input} required />
+                    <input
+                        type="email"
+                        style={styles.input}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="hidan.vlad@test.com"
+                        required
+                    />
 
                     <label style={styles.label}>Password</label>
-                    <input type="password" style={styles.input} required />
+                    <input
+                        type="password"
+                        style={styles.input}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
 
                     <button type="submit" style={styles.btnRed}>Autentificare</button>
                 </form>
