@@ -1,6 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 const InfoCards = () => {
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const cardData = [
         { title: "Events", desc: "Vezi calendarul de alergări și locațiile noastre.", icon: "📅" },
         { title: "Community", desc: "Poze și clipuri de la ultimele evenimente realizate", icon: "👥" },
@@ -8,9 +16,18 @@ const InfoCards = () => {
     ];
 
     return (
-        <section style={styles.container}>
+        <section style={{
+            ...styles.container,
+            flexDirection: isMobile ? 'column' : 'row',
+            padding: isMobile ? '40px 20px' : '20px 40px 60px',
+            alignItems: 'center'
+        }}>
             {cardData.map((card, index) => (
-                <div key={index} style={styles.card}>
+                <div key={index} style={{
+                    ...styles.card,
+                    maxWidth: isMobile ? '100%' : '350px',
+                    width: isMobile ? '100%' : 'auto'
+                }}>
                     <div style={styles.icon}>{card.icon}</div>
                     <h3 style={styles.title}>{card.title}</h3>
                     <p style={styles.text}>{card.desc}</p>
@@ -21,8 +38,8 @@ const InfoCards = () => {
 };
 
 const styles = {
-    container: { display: 'flex', justifyContent: 'center', gap: '20px', padding: '20px 40px 60px', backgroundColor: '#FFFFFF' },
-    card: { flex: 1, backgroundColor: '#F0F0F0', padding: '30px', borderRadius: '20px', textAlign: 'center', maxWidth: '350px' },
+    container: { display: 'flex', justifyContent: 'center', gap: '20px', backgroundColor: '#FFFFFF' },
+    card: { flex: 1, backgroundColor: '#F0F0F0', padding: '30px', borderRadius: '20px', textAlign: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' },
     icon: { fontSize: '30px', marginBottom: '10px', color: '#8B0000' },
     title: { fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' },
     text: { fontSize: '14px', color: '#333', lineHeight: '1.5' }
