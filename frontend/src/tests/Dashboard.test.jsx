@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { expect, test, describe, vi, beforeEach } from 'vitest';
-import Dashboard from '../components/Dashboard';
+import Dashboard from '../pages/Dashboard/Dashboard';
 
 const renderDashboard = () => {
     return render(

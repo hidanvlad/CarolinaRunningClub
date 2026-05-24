@@ -10,10 +10,14 @@ const { typeDefs, resolvers } = require('./graphql/schema');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "http://localhost:5173" } });
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const PORT = Number(process.env.PORT) || 5000;
+
+const io = new Server(server, { cors: { origin: CORS_ORIGIN } });
 
 // 1. Apply CORS globally
-app.use(cors());
+app.use(cors({ origin: CORS_ORIGIN }));
+app.use('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
 
 // 2. FIXED: Apply JSON parsing ONLY to simulation routes
 // This prevents conflicts with GraphQL streams and fixes Express 5 path errors 
@@ -33,7 +37,6 @@ async function startApollo() {
     // 3. Apollo handles its own body parsing for the /graphql endpoint
     apolloServer.applyMiddleware({ app });
 
-    const PORT = 5000;
     // 4. Start listening ONLY after Apollo is fully ready
     server.listen(PORT, () => {
         console.log(`🚀 GraphQL ready at http://localhost:5000${apolloServer.graphqlPath}`);
