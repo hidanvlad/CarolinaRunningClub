@@ -1,7 +1,7 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react'; // Added useEffect and useRef for tracking idle state
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom'; // Added useNavigate
 import { AnimatePresence } from 'framer-motion';
-import { RunsProvider } from './context/RunsContext';
+import { RunsProvider, useRuns } from './context/RunsContext'; // Imported useRuns hook to track current user context
 
 // Pages
 import LandingPage from './pages/LandingPage/LandingPage';
@@ -12,6 +12,7 @@ import Register from './pages/Auth/Register';
 import Login from './pages/Auth/Login';
 import AdminPanel from './pages/AdminPanel/AdminPanel';
 import ChatPage from './pages/Chat/ChatPage';
+import Shop from './pages/Shop/Shop';
 
 // Components
 import AppNavbar from './components/Navigation/AppNavbar';
@@ -27,6 +28,7 @@ const AnimatedRoutes = () => {
                 <Route path="/" element={<AnimatedPage><LandingPage /></AnimatedPage>} />
                 <Route path="/login" element={<AnimatedPage><Login /></AnimatedPage>} />
                 <Route path="/register" element={<AnimatedPage><Register /></AnimatedPage>} />
+                <Route path="/shop" element={<Shop />} />
 
                 {/* Dashboard & Run Management */}
                 <Route path="/dashboard" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
@@ -44,9 +46,64 @@ const AnimatedRoutes = () => {
     );
 };
 
-// Helper component to handle conditional Navbar rendering
+// Helper component to handle conditional Navbar rendering and secure automatic logout
 const AppLayout = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { currentUser, logout } = useRuns(); // Grab active session context parameters
+
+    // Reference pointer managing the background timeout state loop
+    const inactivityTimer = useRef(null);
+
+    // BRONZE REQUIREMENT: Set inactivity threshold limit (5 minutes)
+    const INACTIVITY_TIMEOUT = 5 * 60 * 1000;
+
+    const handleAutomaticLogout = () => {
+        console.warn("[BRONZE SESSION] Inactivity timeout reached. Evicting session claims.");
+
+        // 1. Clear cryptographic token authentication stores
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+
+        // 2. Trigger global application context state cleanup if available
+        if (logout) logout();
+
+        // 3. Inform the user and force them back to the login screen
+        alert("Your session expired.Please login again.");
+        navigate('/login');
+    };
+
+    const resetInactivityTimer = () => {
+        if (inactivityTimer.current) {
+            clearTimeout(inactivityTimer.current);
+        }
+        // Re-establish a clean execution timer tracking loop
+        inactivityTimer.current = setTimeout(handleAutomaticLogout, INACTIVITY_TIMEOUT);
+    };
+
+    useEffect(() => {
+        // Only run inactivity monitoring if a valid user session is currently logged in
+        const publicPaths = ['/', '/login', '/register'];
+        if (!currentUser || publicPaths.includes(location.pathname)) return;
+
+        // Register global DOM event listeners to capture human interaction metrics
+        const trackedEvents = ['mousemove', 'mousedown', 'click', 'keypress', 'scroll', 'touchstart'];
+
+        // Initialize baseline timer tracking instantiations
+        resetInactivityTimer();
+
+        trackedEvents.forEach(evt => {
+            window.addEventListener(evt, resetInactivityTimer);
+        });
+
+        // Clean up listeners on unmounting lifecycle hooks or route transitions
+        return () => {
+            if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+            trackedEvents.forEach(evt => {
+                window.removeEventListener(evt, resetInactivityTimer);
+            });
+        };
+    }, [currentUser, location.pathname]);
 
     // Define paths where the AppNavbar should NOT appear
     const publicPaths = ['/', '/login', '/register'];

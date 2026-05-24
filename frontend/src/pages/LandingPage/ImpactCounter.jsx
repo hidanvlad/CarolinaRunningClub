@@ -1,12 +1,39 @@
 // src/pages/LandingPage/ImpactCounter.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ImpactCounter = () => {
+    // 1. Establish data states holding accurate baseline fallback counters
+    const [liveStats, setLiveStats] = useState({
+        events: "25+",
+        runners: "90",
+        coffees: "150+",
+        kilometers: "120km+"
+    });
+
+    // 2. Fetch the public, unauthenticated metrics summary on rendering mount loops
+    useEffect(() => {
+        fetch('http://10.91.179.21:5048/api/RunActivities/public-summary')
+            .then(res => {
+                if (!res.ok) throw new Error("Network summary response failure.");
+                return res.json();
+            })
+            .then(data => {
+                setLiveStats({
+                    events: `${data.totalEvents}+`,
+                    runners: String(data.totalRunners),
+                    coffees: "150+", // Fun static metric left intact
+                    kilometers: `${data.totalKm} km`
+                });
+            })
+            .catch(err => console.warn("[LANDING STATS] Server offline or loading. Using fallbacks:", err));
+    }, []);
+
+    // 3. Map values safely down to display container grid items
     const stats = [
-        { label: "Evenimente organizate", value: "25+" },
-        { label: "Alergătorii pe Strava", value: "90" },
-        { label: "Cafele băute", value: "150+" },
-        { label: "Kilometri parcurși", value: "120km+" }
+        { label: "Evenimente organizate", value: liveStats.events },
+        { label: "Alergătorii pe Strava", value: liveStats.runners },
+        { label: "Cafele băute", value: liveStats.coffees },
+        { label: "Kilometri parcurși", value: liveStats.kilometers }
     ];
 
     return (

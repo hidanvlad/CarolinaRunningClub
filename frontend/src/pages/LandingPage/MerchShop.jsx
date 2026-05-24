@@ -1,8 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Added for routing navigation
 import event88 from '../../assets/crc-event-88.jpg';
 import event97 from '../../assets/crc-event-97.jpg';
 
 const MerchShop = () => {
+    const navigate = useNavigate(); // Initialized the navigation hook matrix
+
     const products = [
         {
             name: "Tricou Carolina Running Club - Alb",
@@ -29,8 +32,8 @@ const MerchShop = () => {
                     <p style={styles.infoText}>
                         Descoperă magazinul nostru — de la tricouri confortabile la accesorii practice.
                     </p>
-                    {/* 3. Centered Button (matches example) */}
-                    <button style={styles.shopBtn}>LA MAGAZIN →</button>
+                    {/* 3. Centered Button - Wired to navigate straight to the Shop component */}
+                    <button onClick={() => navigate('/shop')} style={styles.shopBtn}>LA MAGAZIN →</button>
                 </div>
 
                 {/* Product Cards - Vertical proportions are kept */}
@@ -79,12 +82,11 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        alignItems: 'center', // Centers button and text
-        alignSelf: 'center', // Proportional: Centers vertically in its grid space
-        maxWidth: '350px', // Proportional: Prevents it from getting too wide
-        margin: '0 auto', // Proportional: Centers horizontally in its grid space
+        alignItems: 'center',
+        alignSelf: 'center',
+        maxWidth: '350px',
+        margin: '0 auto',
         boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
-        // height: '100%' - REMOVED so it fits its content.
     },
     infoTitle: {
         color: '#fff',
@@ -109,7 +111,7 @@ const styles = {
         borderRadius: '25px',
         cursor: 'pointer',
         fontWeight: 'bold',
-        width: 'fit-content' // Keeps pill shape
+        width: 'fit-content'
     },
     productCard: {
         backgroundColor: '#1e1e1e',
@@ -121,7 +123,7 @@ const styles = {
     },
     imgContainer: {
         width: '100%',
-        height: '450px', // Controls portrait proportions
+        height: '450px',
         borderRadius: '10px',
         overflow: 'hidden',
         marginBottom: '15px'
