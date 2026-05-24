@@ -17,6 +17,8 @@ import Shop from './pages/Shop/Shop';
 // Components
 import AppNavbar from './components/Navigation/AppNavbar';
 import AnimatedPage from './components/Transitions/AnimatedPage';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+import AdminRoute from './components/Auth/AdminRoute';
 
 const AnimatedRoutes = () => {
     const location = useLocation();
@@ -30,17 +32,21 @@ const AnimatedRoutes = () => {
                 <Route path="/register" element={<AnimatedPage><Register /></AnimatedPage>} />
                 <Route path="/shop" element={<Shop />} />
 
-                {/* Dashboard & Run Management */}
-                <Route path="/dashboard" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
-                <Route path="/add-run" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
-                <Route path="/edit-run/:id" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
-                <Route path="/run/:id" element={<AnimatedPage><RunDetail /></AnimatedPage>} />
+                <Route element={<ProtectedRoute />}>
+                    {/* Dashboard & Run Management */}
+                    <Route path="/dashboard" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
+                    <Route path="/add-run" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
+                    <Route path="/edit-run/:id" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
+                    <Route path="/run/:id" element={<AnimatedPage><RunDetail /></AnimatedPage>} />
 
-                {/* Global Chat Page */}
-                <Route path="/chat" element={<AnimatedPage><ChatPage /></AnimatedPage>} />
+                    {/* Global Chat Page */}
+                    <Route path="/chat" element={<AnimatedPage><ChatPage /></AnimatedPage>} />
+                </Route>
 
-                {/* Admin-Only Panel */}
-                <Route path="/admin-panel" element={<AnimatedPage><AdminPanel /></AnimatedPage>} />
+                <Route element={<AdminRoute />}>
+                    {/* Admin-Only Panel */}
+                    <Route path="/admin-panel" element={<AnimatedPage><AdminPanel /></AnimatedPage>} />
+                </Route>
             </Routes>
         </AnimatePresence>
     );
@@ -69,7 +75,8 @@ const AppLayout = () => {
         if (logout) logout();
 
         // 3. Inform the user and force them back to the login screen
-        alert("Your session expired.Please login again.");
+        // Avoid blocking alerts and keep UX consistent with in-app messaging
+        console.info("Your session expired. Please login again.");
         navigate('/login');
     };
 

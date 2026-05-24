@@ -1,9 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { API_BASE_URL } from '../config';
 
 const RunsContext = createContext();
-const BASE_URL = 'http://10.91.179.21:5048/api';
+
+const BASE_URL = API_BASE_URL;
 
 export const RunsProvider = ({ children }) => {
     // BRONZE: Maintain session tracking across tab/browser lifecycles via persisted storage keys
@@ -21,8 +23,15 @@ export const RunsProvider = ({ children }) => {
     // Helper method to automatically provide token signatures for outgoing protected mutations
     const getAuthHeaders = () => ({
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': token ? `Bearer ${token}` : ''
     });
+
+    const isUnauthorized = (res) => res.status === 401 || res.status === 403;
+
+    const handleUnauthorized = () => {
+        logout();
+        toast.error('Your session is no longer valid. Please log in again.');
+    };
 
     // --- AUTH FUNCTIONS ---
 
@@ -75,6 +84,7 @@ export const RunsProvider = ({ children }) => {
         try {
             const res = await fetch(`${BASE_URL}/Users`, { headers: getAuthHeaders() });
             if (res.ok) setRunners(await res.json());
+            else if (isUnauthorized(res)) handleUnauthorized();
         } catch { setIsOffline(true); }
     }, []);
 
@@ -82,12 +92,14 @@ export const RunsProvider = ({ children }) => {
         try {
             const res = await fetch(`${BASE_URL}/ActivityTypes`, { headers: getAuthHeaders() });
             if (res.ok) setActivityTypes(await res.json());
+            else if (isUnauthorized(res)) handleUnauthorized();
         } catch (err) { console.error("Failed to fetch types:", err); }
     }, []);
 
     const fetchRuns = useCallback(async () => {
         try {
             const res = await fetch(`${BASE_URL}/RunActivities`, { headers: getAuthHeaders() });
+            if (isUnauthorized(res)) { handleUnauthorized(); throw new Error('unauthorized'); }
             if (!res.ok) throw new Error();
             const rawData = await res.json();
 
@@ -122,6 +134,7 @@ export const RunsProvider = ({ children }) => {
         try {
             const res = await fetch(`${BASE_URL}/ActionLogs`, { headers: getAuthHeaders() });
             if (res.ok) setLogs(await res.json());
+            else if (isUnauthorized(res)) handleUnauthorized();
         } catch (err) { console.error("Failed to fetch logs:", err); }
     }, []);
 
@@ -129,6 +142,7 @@ export const RunsProvider = ({ children }) => {
         try {
             const res = await fetch(`${BASE_URL}/ObservationList`, { headers: getAuthHeaders() });
             if (res.ok) setObservationList(await res.json());
+            else if (isUnauthorized(res)) handleUnauthorized();
         } catch (err) { console.error("Failed to fetch observation list:", err); }
     }, []);
 

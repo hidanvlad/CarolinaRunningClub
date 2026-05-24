@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { motion } from 'framer-motion';
 import { ToastContainer } from 'react-toastify';
+import { API_BASE_URL } from '../../config';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Dashboard = () => {
@@ -43,7 +44,7 @@ const Dashboard = () => {
     const toggleSimulation = async () => {
         const endpoint = isSimulating ? 'stop' : 'start';
         try {
-            const res = await fetch(`http://localhost:5048/api/Simulation/${endpoint}`, {
+            const res = await fetch(`${API_BASE_URL}/Simulation/${endpoint}`, {
                 method: 'POST'
             });
             if (res.ok) {
