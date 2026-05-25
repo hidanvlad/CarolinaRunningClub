@@ -1,7 +1,9 @@
 // src/pages/LandingPage/UpcomingEvents.jsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const UpcomingEvents = () => {
+    const navigate = useNavigate();
     const eventData = [
         {
             title: "Morning Trail Run",
@@ -27,7 +29,7 @@ const UpcomingEvents = () => {
         <section style={styles.section}>
             <div style={styles.headerRow}>
                 <h2 style={styles.title}>EVENIMENTE VIITOARE</h2>
-                <button style={styles.viewAllBtn}>TOATE EVENIMENTELE →</button>
+                <button style={styles.viewAllBtn} onClick={() => navigate('/events')}>TOATE EVENIMENTELE →</button>
             </div>
 
             <div style={styles.eventGrid}>

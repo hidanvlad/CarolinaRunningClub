@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
+    const navigate = useNavigate();
     return (
         <footer style={styles.footer}>
             <div style={styles.container}>
@@ -15,9 +17,9 @@ const Footer = () => {
                 {/* Coloana About */}
                 <div style={styles.column}>
                     <h4 style={styles.heading}>ABOUT</h4>
-                    <p style={styles.text}>Misiunea noastră</p>
-                    <p style={styles.text}>Echipa CRC</p>
-                    <p style={styles.text}>Parteneri</p>
+                    <p style={styles.text} onClick={() => navigate('/join')}>Join the Club</p>
+                    <p style={styles.text} onClick={() => navigate('/coaches')}>Coaches / Pacers</p>
+                    <p style={styles.text} onClick={() => navigate('/faq-contact')}>FAQ / Contact</p>
                 </div>
 
                 {/* Coloana Social Media */}

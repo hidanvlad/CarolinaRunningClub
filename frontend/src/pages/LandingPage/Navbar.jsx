@@ -57,9 +57,18 @@ const Navbar = () => {
                     </svg>
                 </div>
 
+                <div style={navStyles.menuLinks}>
+                    <span style={navStyles.menuItem} onClick={() => navigate('/events')}>Weekly Runs / Events</span>
+                    <span style={navStyles.menuItem} onClick={() => navigate('/join')}>Join the Club</span>
+                    <span style={navStyles.menuItem} onClick={() => navigate('/training-plans')}>Training Plans</span>
+                    <span style={navStyles.menuItem} onClick={() => navigate('/coaches')}>Coaches / Pacers</span>
+                    <span style={navStyles.menuItem} onClick={() => navigate('/results-photos')}>Results & Photos</span>
+                    <span style={navStyles.menuItem} onClick={() => navigate('/faq-contact')}>FAQ / Contact</span>
+                </div>
+
                 <div style={{
                     ...navStyles.navActions,
-                    gap: isMobile ? '12px' : '30px'
+                    gap: isMobile ? '12px' : '18px'
                 }}>
                     <span
                         style={navStyles.joinLink}
@@ -119,6 +128,8 @@ const navStyles = {
         flex: '0 0 auto',
         whiteSpace: 'nowrap'
     },
+    menuLinks: { display: 'flex', gap: '14px', alignItems: 'center', color: '#ddd', fontSize: '12px' },
+    menuItem: { cursor: 'pointer', whiteSpace: 'nowrap' },
     navActions: {
         display: 'flex',
         alignItems: 'center',
