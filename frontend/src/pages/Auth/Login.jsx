@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { API_BASE_URL } from '../../config';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -20,7 +21,7 @@ const Login = () => {
     const [newPassword, setNewPassword] = useState('');
     const [recoveryStep, setRecoveryStep] = useState(1); // 1 = Cerere Email, 2 = Răspuns la Întrebare + Parolă Nouă
 
-    const BASE_URL = 'http://localhost:5048/api';
+    const BASE_URL = API_BASE_URL;
 
     // PASUL 1 LOGARE: Trimitere Credențiale -> Solicitare OTP
     const handleStep1Submit = async (e) => {

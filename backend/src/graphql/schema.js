@@ -71,7 +71,11 @@ const resolvers = {
         shopCategories: () => runsStore.getAllCategories(),
     },
     Mutation: {
-        addRun: (_, args) => runsStore.add(args),
+        addRun: (_, args) => {
+            if (!args.name || args.name.trim().length < 3) throw new Error('Run name must be at least 3 characters.');
+            if (!args.date) throw new Error('Date is required.');
+            return runsStore.add(args);
+        },
         deleteRun: (_, { id }) => runsStore.remove(parseInt(id)),
     },
     // Relationships

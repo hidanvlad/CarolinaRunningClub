@@ -13,10 +13,18 @@ import Login from './pages/Auth/Login';
 import AdminPanel from './pages/AdminPanel/AdminPanel';
 import ChatPage from './pages/Chat/ChatPage';
 import Shop from './pages/Shop/Shop';
+import EventsPage from './pages/Public/EventsPage';
+import JoinPage from './pages/Public/JoinPage';
+import TrainingPlansPage from './pages/Public/TrainingPlansPage';
+import CoachesPage from './pages/Public/CoachesPage';
+import ResultsPhotosPage from './pages/Public/ResultsPhotosPage';
+import FaqContactPage from './pages/Public/FaqContactPage';
 
 // Components
 import AppNavbar from './components/Navigation/AppNavbar';
 import AnimatedPage from './components/Transitions/AnimatedPage';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+import AdminRoute from './components/Auth/AdminRoute';
 
 const AnimatedRoutes = () => {
     const location = useLocation();
@@ -29,18 +37,28 @@ const AnimatedRoutes = () => {
                 <Route path="/login" element={<AnimatedPage><Login /></AnimatedPage>} />
                 <Route path="/register" element={<AnimatedPage><Register /></AnimatedPage>} />
                 <Route path="/shop" element={<Shop />} />
+                <Route path="/events" element={<AnimatedPage><EventsPage /></AnimatedPage>} />
+                <Route path="/join" element={<AnimatedPage><JoinPage /></AnimatedPage>} />
+                <Route path="/training-plans" element={<AnimatedPage><TrainingPlansPage /></AnimatedPage>} />
+                <Route path="/coaches" element={<AnimatedPage><CoachesPage /></AnimatedPage>} />
+                <Route path="/results-photos" element={<AnimatedPage><ResultsPhotosPage /></AnimatedPage>} />
+                <Route path="/faq-contact" element={<AnimatedPage><FaqContactPage /></AnimatedPage>} />
 
-                {/* Dashboard & Run Management */}
-                <Route path="/dashboard" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
-                <Route path="/add-run" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
-                <Route path="/edit-run/:id" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
-                <Route path="/run/:id" element={<AnimatedPage><RunDetail /></AnimatedPage>} />
+                <Route element={<ProtectedRoute />}>
+                    {/* Dashboard & Run Management */}
+                    <Route path="/dashboard" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
+                    <Route path="/add-run" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
+                    <Route path="/edit-run/:id" element={<AnimatedPage><RunFormPage /></AnimatedPage>} />
+                    <Route path="/run/:id" element={<AnimatedPage><RunDetail /></AnimatedPage>} />
 
-                {/* Global Chat Page */}
-                <Route path="/chat" element={<AnimatedPage><ChatPage /></AnimatedPage>} />
+                    {/* Global Chat Page */}
+                    <Route path="/chat" element={<AnimatedPage><ChatPage /></AnimatedPage>} />
+                </Route>
 
-                {/* Admin-Only Panel */}
-                <Route path="/admin-panel" element={<AnimatedPage><AdminPanel /></AnimatedPage>} />
+                <Route element={<AdminRoute />}>
+                    {/* Admin-Only Panel */}
+                    <Route path="/admin-panel" element={<AnimatedPage><AdminPanel /></AnimatedPage>} />
+                </Route>
             </Routes>
         </AnimatePresence>
     );
@@ -69,7 +87,8 @@ const AppLayout = () => {
         if (logout) logout();
 
         // 3. Inform the user and force them back to the login screen
-        alert("Your session expired.Please login again.");
+        // Avoid blocking alerts and keep UX consistent with in-app messaging
+        console.info("Your session expired. Please login again.");
         navigate('/login');
     };
 
