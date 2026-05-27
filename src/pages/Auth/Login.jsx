@@ -7,7 +7,7 @@ const Login = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Updated: Redirect to Dashboard after "Login"
+        localStorage.setItem('crc_auth', 'true');
         navigate('/dashboard');
     };
 
