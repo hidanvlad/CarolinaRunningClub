@@ -10,10 +10,11 @@ const { typeDefs, resolvers } = require('./schema');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "http://localhost:5173" } });
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+const io = new Server(server, { cors: { origin: FRONTEND_ORIGIN } });
 
 // 1. Apply CORS
-app.use(cors());
+app.use(cors({ origin: FRONTEND_ORIGIN }));
 
 // 2. FIXED: Apply JSON parsing only to simulation routes using correct prefix syntax
 // This avoids the "Missing parameter name" error in Express 5
