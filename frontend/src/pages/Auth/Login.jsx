@@ -20,7 +20,7 @@ const Login = () => {
     const [newPassword, setNewPassword] = useState('');
     const [recoveryStep, setRecoveryStep] = useState(1); // 1 = Cerere Email, 2 = Răspuns la Întrebare + Parolă Nouă
 
-    const BASE_URL = 'http://localhost:5048/api';
+    const BASE_URL = 'https://localhost:7209/api';
 
     // PASUL 1 LOGARE: Trimitere Credențiale -> Solicitare OTP
     const handleStep1Submit = async (e) => {
