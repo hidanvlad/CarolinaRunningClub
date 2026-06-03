@@ -23,7 +23,10 @@ const Dashboard = () => {
 
     const COLORS = ['#8B0000', '#B22222', '#CD5C5C', '#E57373'];
 
-    const displayedRuns = currentUser?.role === 'Admin'
+    // ARTIFICIU ADMIN OVERSIGHT: Te recunoaște ca Admin dacă ai rolul sau dacă ai emailul test@email.com
+    const isAdmin = currentUser?.role === 'Admin' || currentUser?.email === 'test@email.com';
+
+    const displayedRuns = isAdmin
         ? runs
         : runs.filter(r => Number(r.userId) === currentUser?.id);
 
@@ -71,17 +74,16 @@ const Dashboard = () => {
                 <div style={{ borderLeft: '5px solid #8B0000', paddingLeft: '15px' }}>
                     <h1 style={{ ...styles.mainTitle, fontSize: isMobile ? '22px' : '26px' }}>Management Runs</h1>
                     <span style={{ color: '#888', fontSize: '12px' }}>
-                        Logged as: <strong style={{ color: currentUser?.role === 'Admin' ? '#FFD700' : '#CD5C5C' }}>{currentUser?.role}</strong>
+                        Logged as: <strong style={{ color: isAdmin ? '#FFD700' : '#CD5C5C' }}>{isAdmin ? 'Admin' : (currentUser?.role || 'User')}</strong>
                     </span>
                 </div>
 
                 <div style={{ ...styles.buttonGroup, width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'flex-start' : 'flex-end' }}>
-                    {currentUser?.role === 'Admin' && (
+                    {isAdmin && (
                         <button onClick={toggleSimulation} style={isSimulating ? styles.btnStop : styles.btnSimulate}>
                             {isSimulating ? (isMobile ? "Stop" : "Stop Stream") : (isMobile ? "Live" : "Live Simulation")}
                         </button>
                     )}
-                    {/* CORE SERVICE INTEGRATION LINK: Fast toggle back to the club retail store panel */}
                     <button onClick={() => navigate('/shop')} style={styles.btnShopNav}>Shop</button>
                     <button onClick={() => navigate('/add-run')} style={styles.btnRed}>+ Add</button>
                 </div>
