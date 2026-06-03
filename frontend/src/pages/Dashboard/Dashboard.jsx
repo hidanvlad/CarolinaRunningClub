@@ -43,7 +43,7 @@ const Dashboard = () => {
     const toggleSimulation = async () => {
         const endpoint = isSimulating ? 'stop' : 'start';
         try {
-            const res = await fetch(`http://localhost:5048/api/Simulation/${endpoint}`, {
+            const res = await fetch(`https://carolina-running-club-backend.onrender.com/api/Simulation/${endpoint}`, {
                 method: 'POST'
             });
             if (res.ok) {

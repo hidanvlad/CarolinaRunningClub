@@ -12,7 +12,7 @@ const ImpactCounter = () => {
 
     // 2. Fetch the public, unauthenticated metrics summary on rendering mount loops
     useEffect(() => {
-        fetch('http://10.91.179.21:5048/api/RunActivities/public-summary')
+        fetch('https://carolina-running-club-backend.onrender.com/api/RunActivities/public-summary')
             .then(res => {
                 if (!res.ok) throw new Error("Network summary response failure.");
                 return res.json();
