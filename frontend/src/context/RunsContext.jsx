@@ -3,7 +3,7 @@ import React, { createContext, useState, useEffect, useContext, useCallback } fr
 import { toast } from 'react-toastify';
 
 const RunsContext = createContext();
-const BASE_URL = 'https://localhost:7209/api';
+const BASE_URL = 'https://carolina-running-club-backend.onrender.com/api';
 
 export const RunsProvider = ({ children }) => {
     // BRONZE: Maintain session tracking across tab/browser lifecycles via persisted storage keys

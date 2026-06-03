@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	<NoWarn>NU1901</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\images\crc-event-13.jpg" />
+    <Content Remove="wwwroot\images\crc-event-4.jpg" />
+    <Content Remove="wwwroot\images\crc-event-88.jpg" />
+    <Content Remove="wwwroot\images\crc-event-97.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bogus" Version="35.6.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\images\crc-event-13.jpg" />
+    <None Include="wwwroot\images\crc-event-4.jpg" />
+    <None Include="wwwroot\images\crc-event-88.jpg" />
+    <None Include="wwwroot\images\crc-event-97.jpg" />
+  </ItemGroup>
+
+</Project>
