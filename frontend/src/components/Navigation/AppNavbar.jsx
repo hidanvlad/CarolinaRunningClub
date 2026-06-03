@@ -15,7 +15,6 @@ const AppNavbar = () => {
 
     if (!currentUser) return null;
 
-
     const isAdmin = currentUser?.role === 'Admin' || currentUser?.email === 'test@email.com';
 
     const handleLogout = () => {
@@ -44,7 +43,6 @@ const AppNavbar = () => {
                 <Link to="/dashboard" style={styles.link}>Runs</Link>
                 <Link to="/chat" style={styles.link}>Chat</Link>
 
-                
                 {isAdmin && (
                     <Link to="/admin-panel" style={{
                         ...styles.adminLink,
@@ -62,8 +60,6 @@ const AppNavbar = () => {
             }}>
                 <div style={styles.userInfo}>
                     <span style={{ ...styles.userName, display: isMobile ? 'none' : 'block' }}>{currentUser.name || "vlad"}</span>
-
-                    
                     <span style={{
                         ...styles.roleBadge,
                         color: isAdmin ? '#FFD700' : '#8B0000'
@@ -110,7 +106,7 @@ const styles = {
     userSection: { display: 'flex', alignItems: 'center' },
     userInfo: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end' },
     userName: { color: '#fff', fontSize: '14px', fontWeight: 'bold' },
-    roleBadge: { fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }, /
+    roleBadge: { fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' },
     logoutBtn: {
         backgroundColor: 'transparent',
         border: '1px solid #444',
