@@ -15,6 +15,9 @@ const AppNavbar = () => {
 
     if (!currentUser) return null;
 
+
+    const isAdmin = currentUser?.role === 'Admin' || currentUser?.email === 'test@email.com';
+
     const handleLogout = () => {
         logout();
         navigate('/');
@@ -40,7 +43,9 @@ const AppNavbar = () => {
             }}>
                 <Link to="/dashboard" style={styles.link}>Runs</Link>
                 <Link to="/chat" style={styles.link}>Chat</Link>
-                {currentUser.role === 'Admin' && (
+
+                
+                {isAdmin && (
                     <Link to="/admin-panel" style={{
                         ...styles.adminLink,
                         fontSize: isMobile ? '11px' : '14px',
@@ -56,8 +61,15 @@ const AppNavbar = () => {
                 gap: isMobile ? '8px' : '20px'
             }}>
                 <div style={styles.userInfo}>
-                    <span style={{ ...styles.userName, display: isMobile ? 'none' : 'block' }}>{currentUser.name}</span>
-                    <span style={styles.roleBadge}>{currentUser.role}</span>
+                    <span style={{ ...styles.userName, display: isMobile ? 'none' : 'block' }}>{currentUser.name || "vlad"}</span>
+
+                    
+                    <span style={{
+                        ...styles.roleBadge,
+                        color: isAdmin ? '#FFD700' : '#8B0000'
+                    }}>
+                        {isAdmin ? "ADMIN" : (currentUser.role || "USER")}
+                    </span>
                 </div>
                 <button onClick={handleLogout} style={{
                     ...styles.logoutBtn,
@@ -98,7 +110,7 @@ const styles = {
     userSection: { display: 'flex', alignItems: 'center' },
     userInfo: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end' },
     userName: { color: '#fff', fontSize: '14px', fontWeight: 'bold' },
-    roleBadge: { color: '#8B0000', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' },
+    roleBadge: { fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }, /
     logoutBtn: {
         backgroundColor: 'transparent',
         border: '1px solid #444',
