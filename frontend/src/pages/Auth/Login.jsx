@@ -20,7 +20,7 @@ const Login = () => {
     const [newPassword, setNewPassword] = useState('');
     const [recoveryStep, setRecoveryStep] = useState(1); 
 
-    const BASE_URL = 'https://localhost:7209/api';
+    const BASE_URL = 'https://carolina-running-club-backend.onrender.com/api';
 
     // PASUL 1 LOGARE: Trimitere Credențiale -> Solicitare OTP
     const handleStep1Submit = async (e) => {
