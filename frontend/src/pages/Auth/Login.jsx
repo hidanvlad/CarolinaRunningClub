@@ -18,7 +18,7 @@ const Login = () => {
     const [securityQuestion, setSecurityQuestion] = useState('');
     const [recoveryAnswer, setRecoveryAnswer] = useState('');
     const [newPassword, setNewPassword] = useState('');
-    const [recoveryStep, setRecoveryStep] = useState(1); // 1 = Cerere Email, 2 = Răspuns la Întrebare + Parolă Nouă
+    const [recoveryStep, setRecoveryStep] = useState(1); 
 
     const BASE_URL = 'https://localhost:7209/api';
 
@@ -143,7 +143,7 @@ const Login = () => {
                     </form>
                 ) : (
                     <form onSubmit={handleFinalizeLogin} style={styles.form}>
-                        <label style={styles.label}>Cod Verificare E-mail (MFA OTP)</label>
+                        <label style={styles.label}>Cod Verificare E-mail </label>
                         <input type="text" style={{ ...styles.input, borderColor: '#8B0000', textAlign: 'center', fontSize: '22px', letterSpacing: '4px', fontWeight: 'bold' }}
                             value={otpCode} onChange={(e) => setOtpCode(e.target.value)} placeholder="000000" maxLength="6" required />
 
