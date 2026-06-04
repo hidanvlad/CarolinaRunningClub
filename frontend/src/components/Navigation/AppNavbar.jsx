@@ -42,7 +42,7 @@ const AppNavbar = () => {
             }}>
                 <Link to="/dashboard" style={styles.link}>Runs</Link>
                 <Link to="/chat" style={styles.link}>Chat</Link>
-
+                
                 {isAdmin && (
                     <Link to="/admin-panel" style={{
                         ...styles.adminLink,
@@ -60,7 +60,7 @@ const AppNavbar = () => {
             }}>
                 <div style={styles.userInfo}>
                     <span style={{ ...styles.userName, display: isMobile ? 'none' : 'block' }}>{currentUser.name || "vlad"}</span>
-                    <span style={{
+                    <span style={{ 
                         ...styles.roleBadge,
                         color: isAdmin ? '#FFD700' : '#8B0000'
                     }}>

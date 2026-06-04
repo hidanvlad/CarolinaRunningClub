@@ -6,35 +6,37 @@ import { toast } from 'react-toastify';
 const Login = () => {
     const navigate = useNavigate();
 
-    // Stările pentru Logarea în 2 Pași
-    const [loginStep, setLoginStep] = useState(1); // 1 = Credențiale, 2 = Introducere OTP Email
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [otpCode, setOtpCode] = useState('');
 
-    // Stările pentru Modalul de Recuperare Parolă (Sincronizat Complet)
+    // Stările pentru Modalul de Recuperare Parolă
     const [showRecovery, setShowRecovery] = useState(false);
     const [recoveryEmail, setRecoveryEmail] = useState('');
     const [securityQuestion, setSecurityQuestion] = useState('');
     const [recoveryAnswer, setRecoveryAnswer] = useState('');
     const [newPassword, setNewPassword] = useState('');
-    const [recoveryStep, setRecoveryStep] = useState(1); 
+    const [recoveryStep, setRecoveryStep] = useState(1);
 
     const BASE_URL = 'https://carolina-running-club-backend.onrender.com/api';
 
-    // PASUL 1 LOGARE: Trimitere Credențiale -> Solicitare OTP
-    const handleStep1Submit = async (e) => {
+    // Trimitere directă credențiale
+    const handleLoginSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch(`${BASE_URL}/Auth/send-login-otp`, {
+            const res = await fetch(`${BASE_URL}/Auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ email, password, securityPassphrase: "" })
             });
 
             if (res.ok) {
-                setLoginStep(2); // Schimbă vizual pagina cardului la pasul 2
-                toast.success('Credențiale corecte! Codul OTP a fost generat în consolă.');
+                const data = await res.json();
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                toast.success('Autentificat cu succes! Bun venit.');
+
+                navigate('/dashboard');
+                window.location.reload();
             } else {
                 const errorText = await res.text();
                 toast.error(errorText || "Email sau parolă incorectă.");
@@ -44,33 +46,7 @@ const Login = () => {
         }
     };
 
-    // PASUL 2 LOGARE: Introducere OTP -> Finalizare Logare JWT
-    const handleFinalizeLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await fetch(`${BASE_URL}/Auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, securityPassphrase: otpCode })
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                toast.success(`Autentificat cu succes! Bun venit.`);
-
-                navigate('/dashboard');
-                window.location.reload();
-            } else {
-                toast.error("Codul OTP introdus este incorect.");
-            }
-        } catch {
-            toast.error("Eroare la procesarea autentificării.");
-        }
-    };
-
-    // RECUPERARE PASUL 1: Cere întrebarea din baza de date pe baza emailului
+    // RECUPERARE PASUL 1
     const handleFetchQuestion = async (e) => {
         e.preventDefault();
         try {
@@ -83,7 +59,7 @@ const Login = () => {
             if (res.ok) {
                 const data = await res.json();
                 setSecurityQuestion(data.question);
-                setRecoveryStep(2); // Deblochează pasul 2 în interiorul modalului!
+                setRecoveryStep(2);
                 toast.success("Identitate găsită! Răspundeți la întrebare.");
             } else {
                 toast.error("Adresa de email nu există în baza de date.");
@@ -93,7 +69,7 @@ const Login = () => {
         }
     };
 
-    // RECUPERARE PASUL 2: Trimite răspunsul și salvează noua parolă în SQL
+    // RECUPERARE PASUL 2
     const handleResetPassword = async (e) => {
         e.preventDefault();
         try {
@@ -105,8 +81,8 @@ const Login = () => {
 
             if (res.ok) {
                 toast.success("Parola a fost actualizată! Vă puteți loga.");
-                setShowRecovery(false); // Închide modalul automat
-                setRecoveryStep(1); // Resetează modalul pentru utilizări viitoare
+                setShowRecovery(false);
+                setRecoveryStep(1);
                 setRecoveryEmail(''); setRecoveryAnswer(''); setNewPassword('');
             } else {
                 toast.error("Răspunsul la întrebarea de siguranță este greșit.");
@@ -125,43 +101,28 @@ const Login = () => {
             <h1 style={styles.title}>Carolina Running Club</h1>
             <p style={styles.subtitle}>Welcome back</p>
 
-            <motion.div key={loginStep} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={styles.card}>
-                <h2 style={styles.formTitle}>Login (Secure Gateway)</h2>
-                <p style={styles.formSubtitle}>
-                    {loginStep === 1 ? "Pasul 1: Introduceți credențialele" : "Pasul 2: Introduceți codul primit pe e-mail"}
-                </p>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={styles.card}>
+                <h2 style={styles.formTitle}>Login (Direct Access)</h2>
+                <p style={styles.formSubtitle}>Introduceți credențialele pentru conectare instantanee</p>
 
-                {loginStep === 1 ? (
-                    <form onSubmit={handleStep1Submit} style={styles.form}>
-                        <label style={styles.label}>Email Address</label>
-                        <input type="email" style={styles.input} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="hidan.vlad@test.com" required />
+                <form onSubmit={handleLoginSubmit} style={styles.form}>
+                    <label style={styles.label}>Email Address</label>
+                    <input type="email" style={styles.input} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="hidan.vlad@test.com" required />
 
-                        <label style={styles.label}>Account Password</label>
-                        <input type="password" style={styles.input} value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <label style={styles.label}>Account Password</label>
+                    <input type="password" style={styles.input} value={password} onChange={(e) => setPassword(e.target.value)} required />
 
-                        <button type="submit" style={styles.btnRed}>Continuă spre OTP →</button>
-                    </form>
-                ) : (
-                    <form onSubmit={handleFinalizeLogin} style={styles.form}>
-                        <label style={styles.label}>Cod Verificare E-mail </label>
-                        <input type="text" style={{ ...styles.input, borderColor: '#8B0000', textAlign: 'center', fontSize: '22px', letterSpacing: '4px', fontWeight: 'bold' }}
-                            value={otpCode} onChange={(e) => setOtpCode(e.target.value)} placeholder="000000" maxLength="6" required />
+                    <button type="submit" style={styles.btnRed}>Conectează-te 🔓</button>
+                </form>
 
-                        <button type="submit" style={{ ...styles.btnRed, backgroundColor: '#333' }}>Verifică și Conectează 🔓</button>
-                        <button type="button" onClick={() => setLoginStep(1)} style={styles.btnCancel}>← Înapoi la credențiale</button>
-                    </form>
-                )}
-
-                {loginStep === 1 && (
-                    <div style={{ textAlign: 'center', marginTop: '15px' }}>
-                        <span onClick={() => setShowRecovery(true)} style={styles.recoveryLink}>Forgot Password / Recovery?</span>
-                    </div>
-                )}
+                <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                    <span onClick={() => setShowRecovery(true)} style={styles.recoveryLink}>Forgot Password / Recovery?</span>
+                </div>
 
                 <p style={styles.footerText}>Nu ai cont? <span onClick={() => navigate('/register')} style={styles.link}>Înregistrează-te aici</span></p>
             </motion.div>
 
-            {/* MODALUL DE RECUPERARE PAROLĂ - CORECTAT ȘI PERFECT FUNCȚIONAL */}
+            {/* MODALUL DE RECUPERARE PAROLĂ */}
             {showRecovery && (
                 <div style={styles.modalOverlay}>
                     <div style={styles.modalContent}>
