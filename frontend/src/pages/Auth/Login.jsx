@@ -102,8 +102,8 @@ const Login = () => {
             <p style={styles.subtitle}>Welcome back</p>
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={styles.card}>
-                <h2 style={styles.formTitle}>Login (Direct Access)</h2>
-                <p style={styles.formSubtitle}>Introduceți credențialele pentru conectare instantanee</p>
+                <h2 style={styles.formTitle}>Login</h2>
+                <p style={styles.formSubtitle}>Insert your credentials to access your account</p>
 
                 <form onSubmit={handleLoginSubmit} style={styles.form}>
                     <label style={styles.label}>Email Address</label>
@@ -112,7 +112,7 @@ const Login = () => {
                     <label style={styles.label}>Account Password</label>
                     <input type="password" style={styles.input} value={password} onChange={(e) => setPassword(e.target.value)} required />
 
-                    <button type="submit" style={styles.btnRed}>Conectează-te 🔓</button>
+                    <button type="submit" style={styles.btnRed}>Connect</button>
                 </form>
 
                 <div style={{ textAlign: 'center', marginTop: '15px' }}>
